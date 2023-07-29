@@ -1,5 +1,6 @@
 #include "displayapp/DisplayApp.h"
 #include <libraries/log/nrf_log.h>
+#include <displayapp/screens/TheCrypt.h>
 #include "displayapp/screens/HeartRate.h"
 #include "displayapp/screens/Motion.h"
 #include "displayapp/screens/Timer.h"
@@ -29,6 +30,7 @@
 #include "displayapp/screens/Steps.h"
 #include "displayapp/screens/PassKey.h"
 #include "displayapp/screens/Error.h"
+#include "displayapp/screens/Sched.h"
 #include "displayapp/screens/Weather.h"
 
 #include "drivers/Cst816s.h"
@@ -284,8 +286,10 @@ void DisplayApp::Refresh() {
             case DisplayApp::FullRefreshDirections::Down:
               return TouchEvents::SwipeUp;
             case DisplayApp::FullRefreshDirections::LeftAnim:
+            case DisplayApp::FullRefreshDirections::Left:
               return TouchEvents::SwipeRight;
             case DisplayApp::FullRefreshDirections::RightAnim:
+            case DisplayApp::FullRefreshDirections::Right:
               return TouchEvents::SwipeLeft;
           }
         };
@@ -301,6 +305,9 @@ void DisplayApp::Refresh() {
               case TouchEvents::SwipeRight:
                 LoadNewScreen(Apps::QuickSettings, DisplayApp::FullRefreshDirections::RightAnim);
                 break;
+              case TouchEvents::SwipeLeft:
+                LoadNewScreen(Apps::Music, DisplayApp::FullRefreshDirections::LeftAnim);
+                break ;
               case TouchEvents::DoubleTap:
                 PushMessageToSystemTask(System::Messages::GoToSleep);
                 break;
@@ -394,6 +401,10 @@ void DisplayApp::LoadNewScreen(Apps app, DisplayApp::FullRefreshDirections direc
 }
 
 void DisplayApp::LoadScreen(Apps app, DisplayApp::FullRefreshDirections direction) {
+  if (app == Apps::NotificationsPreview && notificationSuppressor) {
+    return ;
+  }
+  
   lvgl.CancelTap();
   lv_disp_trig_activity(nullptr);
   motorController.StopRinging();
@@ -401,6 +412,8 @@ void DisplayApp::LoadScreen(Apps app, DisplayApp::FullRefreshDirections directio
   currentScreen.reset(nullptr);
   SetFullRefresh(direction);
 
+  notificationSuppressor = false;
+  
   switch (app) {
     case Apps::Launcher:
       currentScreen =
@@ -431,25 +444,29 @@ void DisplayApp::LoadScreen(Apps app, DisplayApp::FullRefreshDirections directio
       break;
     case Apps::FirmwareUpdate:
       currentScreen = std::make_unique<Screens::FirmwareUpdate>(bleController);
+      notificationSuppressor = true;
       break;
 
     case Apps::PassKey:
       currentScreen = std::make_unique<Screens::PassKey>(bleController.GetPairingKey());
+      notificationSuppressor = true;
       break;
 
     case Apps::Notifications:
       currentScreen = std::make_unique<Screens::Notifications>(this,
                                                                notificationManager,
-                                                               systemTask->nimble().alertService(),
+                                                               systemTask->nimble().callService(),
                                                                motorController,
+                                                               filesystem,
                                                                *systemTask,
                                                                Screens::Notifications::Modes::Normal);
       break;
     case Apps::NotificationsPreview:
       currentScreen = std::make_unique<Screens::Notifications>(this,
                                                                notificationManager,
-                                                               systemTask->nimble().alertService(),
+                                                               systemTask->nimble().callService(),
                                                                motorController,
+                                                               filesystem,
                                                                *systemTask,
                                                                Screens::Notifications::Modes::Preview);
       break;
@@ -519,6 +536,7 @@ void DisplayApp::LoadScreen(Apps app, DisplayApp::FullRefreshDirections directio
     case Apps::StopWatch:
       currentScreen = std::make_unique<Screens::StopWatch>(*systemTask);
       break;
+#ifdef _INCLUDE_EXTRAS
     case Apps::Twos:
       currentScreen = std::make_unique<Screens::Twos>();
       break;
@@ -528,23 +546,29 @@ void DisplayApp::LoadScreen(Apps app, DisplayApp::FullRefreshDirections directio
     case Apps::Paddle:
       currentScreen = std::make_unique<Screens::Paddle>(lvgl);
       break;
-    case Apps::Music:
-      currentScreen = std::make_unique<Screens::Music>(systemTask->nimble().music());
-      break;
+#ifdef _INCLUDE_EXTRAS_NAV
     case Apps::Navigation:
       currentScreen = std::make_unique<Screens::Navigation>(systemTask->nimble().navigation());
       break;
+#endif
+#endif
+    case Apps::Music:
+      currentScreen = std::make_unique<Screens::Music>(systemTask->nimble().music());
+      break;
+#ifdef _INCLUDE_CON
+    case Apps::Sched:
+      currentScreen = std::make_unique<Screens::Schedule>();
+      break;
+    case Apps::Crypt:
+      currentScreen = std::make_unique<Screens::TheCrypt>(dateTimeController);
+      break ;
+#endif
     case Apps::HeartRate:
       currentScreen = std::make_unique<Screens::HeartRate>(heartRateController, *systemTask);
       break;
     case Apps::Metronome:
       currentScreen = std::make_unique<Screens::Metronome>(motorController, *systemTask);
       break;
-    /* Weather debug app
-    case Apps::Weather:
-      currentScreen = std::make_unique<Screens::Weather>(this, systemTask->nimble().weather());
-      break;
-    */
     case Apps::Steps:
       currentScreen = std::make_unique<Screens::Steps>(motionController, settingsController);
       break;

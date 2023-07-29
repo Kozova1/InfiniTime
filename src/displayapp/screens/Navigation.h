@@ -17,6 +17,9 @@
 */
 #pragma once
 
+//#define _INCLUDE_EXTRAS_NAV
+
+#ifdef _INCLUDE_EXTRAS_NAV
 #include <FreeRTOS.h>
 #include <lvgl/src/lv_core/lv_obj.h>
 #include <string>
@@ -55,3 +58,4 @@ namespace Pinetime {
     }
   }
 }
+#endif

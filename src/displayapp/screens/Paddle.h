@@ -1,8 +1,13 @@
 #pragma once
 
+#define _INCLUDE_EXTRAS
+
+#ifdef _INCLUDE_EXTRAS
+
 #include <lvgl/lvgl.h>
 #include <cstdint>
 #include "displayapp/screens/Screen.h"
+#include "components/ctf/CtfController.h"
 
 namespace Pinetime {
   namespace Components {
@@ -22,6 +27,8 @@ namespace Pinetime {
         bool OnTouchEvent(TouchEvents event) override;
         bool OnTouchEvent(uint16_t x, uint16_t y) override;
 
+        void changeRandomBallColor();
+
       private:
         Pinetime::Components::LittleVgl& lvgl;
 
@@ -37,6 +44,10 @@ namespace Pinetime {
 
         uint16_t score = 0;
 
+        // For a special surprise
+        int const party_threshold = 0x17;
+        bool party_mode = false;
+
         lv_obj_t* points;
         lv_obj_t* paddle;
         lv_obj_t* ball;
@@ -47,3 +58,4 @@ namespace Pinetime {
     }
   }
 }
+#endif

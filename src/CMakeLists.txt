@@ -432,10 +432,13 @@ list(APPEND SOURCE_FILES
         displayapp/screens/WatchFaceDigital.cpp
         displayapp/screens/WatchFaceInfineat.cpp
         displayapp/screens/WatchFaceTerminal.cpp
+        displayapp/screens/WatchFaceUnix.cpp
         displayapp/screens/WatchFacePineTimeStyle.cpp
         displayapp/screens/WatchFaceCasioStyleG7710.cpp
 
-        ##
+        ## Con stuff
+        displayapp/screens/Sched.cpp
+        displayapp/screens/TheCrypt.cpp
 
         main.cpp
         drivers/St7789.cpp
@@ -470,12 +473,16 @@ list(APPEND SOURCE_FILES
         components/ble/ServiceDiscovery.cpp
         components/ble/HeartRateService.cpp
         components/ble/MotionService.cpp
+        components/ble/AppleNotificationCenterServiceClient.cpp
+        components/ble/AppleMusicService.cpp
+        components/ble/BleUtils.cpp
         components/firmwarevalidator/FirmwareValidator.cpp
         components/motor/MotorController.cpp
         components/settings/Settings.cpp
         components/timer/Timer.cpp
         components/alarm/AlarmController.cpp
         components/fs/FS.cpp
+        components/ctf/CtfController.cpp
         drivers/Cst816s.cpp
         FreeRTOS/port.c
         FreeRTOS/port_cmsis_systick.c
@@ -495,7 +502,6 @@ list(APPEND SOURCE_FILES
         buttonhandler/ButtonHandler.cpp
         touchhandler/TouchHandler.cpp
         )
-
 list(APPEND RECOVERY_SOURCE_FILES
         stdlib.c
         FreeRTOS/heap_4_infinitime.c
@@ -525,6 +531,9 @@ list(APPEND RECOVERY_SOURCE_FILES
         components/ble/DeviceInformationService.cpp
         components/ble/CurrentTimeClient.cpp
         components/ble/AlertNotificationClient.cpp
+        components/ble/AppleNotificationCenterServiceClient.cpp
+        components/ble/BleUtils.cpp
+        components/ble/AppleMusicService.cpp
         components/ble/DfuService.cpp
         components/ble/CurrentTimeService.cpp
         components/ble/AlertNotificationService.cpp
@@ -623,6 +632,13 @@ set(INCLUDE_FILES
         displayapp/widgets/PageIndicator.h
         displayapp/widgets/DotIndicator.h
         displayapp/widgets/StatusIcons.h
+
+        # Con stuff
+        displayapp/screens/schedule_events.h
+        displayapp/screens/Sched.h
+        displayapp/screens/TheCrypt.h
+        displayapp/screens/TheCryptImage.h
+
         drivers/St7789.h
         drivers/SpiNorFlash.h
         drivers/SpiMaster.h
@@ -635,6 +651,8 @@ set(INCLUDE_FILES
         drivers/Bma421_C/bma4.c
         drivers/Bma421_C/bma423.c
         components/battery/BatteryController.h
+        components/ble/IMusicService.h
+        components/ble/BleUtils.h
         components/ble/BleController.h
         components/ble/NotificationManager.h
         components/datetime/DateTimeController.h
@@ -647,6 +665,8 @@ set(INCLUDE_FILES
         components/ble/DeviceInformationService.h
         components/ble/CurrentTimeClient.h
         components/ble/AlertNotificationClient.h
+        components/ble/AppleNotificationCenterServiceClient.h
+        components/ble/AppleMusicService.h
         components/ble/DfuService.h
         components/firmwarevalidator/FirmwareValidator.h
         components/ble/BatteryInformationService.h
@@ -660,6 +680,7 @@ set(INCLUDE_FILES
         components/settings/Settings.h
         components/timer/Timer.h
         components/alarm/AlarmController.h
+        components/ctf/CtfController.h
         drivers/Cst816s.h
         FreeRTOS/portmacro.h
         FreeRTOS/portmacro_cmsis.h
@@ -779,7 +800,8 @@ link_directories(
 
 set(COMMON_FLAGS -MP -MD -mthumb -mabi=aapcs -ftree-vrp -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin -fshort-enums -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fstack-usage -fno-exceptions -fno-non-call-exceptions)
 set(WARNING_FLAGS -Wall -Wextra -Warray-bounds=2 -Wformat=2 -Wformat-overflow=2 -Wformat-truncation=2 -Wformat-nonliteral -Wno-missing-field-initializers -Wno-unknown-pragmas -Wno-expansion-to-defined -Wreturn-type -Werror=return-type -Werror)
-set(DEBUG_FLAGS -Og -g3)
+#set(DEBUG_FLAGS -Og -g3)
+set(DEBUG_FLAGS -Os)
 set(RELEASE_FLAGS -Os)
 set(CXX_FLAGS -fno-rtti)
 set(ASM_FLAGS -x assembler-with-cpp)
@@ -826,10 +848,10 @@ endif()
 # Debug configuration
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
   add_definitions(-DDEBUG)
-  add_definitions(-DDEBUG_NRF_USER)
+#  add_definitions(-DDEBUG_NRF_USER)
 
   # NRF SDK Logging
-  add_definitions(-DNRF_LOG_ENABLED=1)
+#  add_definitions(-DNRF_LOG_ENABLED=1)
   # add_definitions(-DNRF_LOG_BACKEND_RTT_ENABLED=1)
   # add_definitions(-DNRF_LOG_BACKEND_SERIAL_USES_RTT=1)
 
@@ -840,7 +862,7 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
   # add_definitions(-DRTC_CONFIG_LOG_LEVEL=4)
   
   # Nimble Logging
-  add_definitions(-DMYNEWT_VAL_NEWT_FEATURE_LOGCFG=1)
+#  add_definitions(-DMYNEWT_VAL_NEWT_FEATURE_LOGCFG=1)
   # add_definitions(-DMYNEWT_VAL_LOG_LEVEL=0)
   # add_definitions(-DMYNEWT_VAL_BLE_HS_LOG_LVL=0)
 endif()

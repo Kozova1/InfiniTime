@@ -50,12 +50,21 @@ namespace Pinetime {
         lv_obj_t* label_time;
         lv_obj_t* label_date;
         lv_obj_t* label_prompt_1;
-        lv_obj_t* label_prompt_2;
+        lv_obj_t* label_ctf;
+        lv_obj_t* backgroundLabel;
         lv_obj_t* batteryValue;
         lv_obj_t* heartbeatValue;
         lv_obj_t* stepValue;
         lv_obj_t* notificationIcon;
         lv_obj_t* connectState;
+        
+        uint8_t displayedHour;
+        uint8_t displayedMinute;
+        uint8_t displayedSecond;
+        uint16_t currentYear;
+        Controllers::DateTime::Months currentMonth;
+        Controllers::DateTime::Days currentDayOfWeek;
+        uint8_t currentDay;
 
         Controllers::DateTime& dateTimeController;
         const Controllers::Battery& batteryController;

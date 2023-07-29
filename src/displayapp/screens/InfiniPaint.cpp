@@ -3,8 +3,9 @@
 #include "displayapp/LittleVgl.h"
 #include "displayapp/InfiniTimeTheme.h"
 
-#include <algorithm> // std::fill
+#ifdef _INCLUDE_EXTRAS
 
+#include <algorithm> // std::fill
 using namespace Pinetime::Applications::Screens;
 
 InfiniPaint::InfiniPaint(Pinetime::Components::LittleVgl& lvgl, Pinetime::Controllers::MotorController& motor)
@@ -70,3 +71,4 @@ bool InfiniPaint::OnTouchEvent(uint16_t x, uint16_t y) {
   lvgl.FlushDisplay(&area, b);
   return true;
 }
+#endif
