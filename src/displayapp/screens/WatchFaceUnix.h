@@ -8,7 +8,6 @@
 #include "displayapp/screens/Screen.h"
 #include "components/datetime/DateTimeController.h"
 #include "components/ble/BleController.h"
-#include "displayapp/screens/WatchFaceUnixImage.h"
 #include "BatteryIcon.h"
 #include "utility/DirtyValue.h"
 
@@ -37,6 +36,8 @@ namespace Pinetime {
                          Controllers::MotionController& motionController);
         ~WatchFaceUnix() override;
         void Refresh() override;
+
+        static bool IsAvailable(Pinetime::Controllers::FS& filesystem);
 
       private:
         int timePointToTimestamp(std::chrono::system_clock::time_point& tp);
@@ -73,6 +74,7 @@ namespace Pinetime {
         lv_obj_t* stepIcon;
         lv_obj_t* stepValue;
         lv_obj_t* notificationIcon;
+        lv_obj_t* logo;
         
         Controllers::DateTime& dateTimeController;
         const Controllers::Battery& batteryController;
@@ -102,8 +104,8 @@ namespace Pinetime {
                                           controllers.motionController);
       }
 
-      static bool IsAvailable(Pinetime::Controllers::FS& /*filesystem*/) {
-        return true;
+      static bool IsAvailable(Pinetime::Controllers::FS& filesystem) {
+        return Screens::WatchFaceUnix::IsAvailable(filesystem);
       }
     };
   }

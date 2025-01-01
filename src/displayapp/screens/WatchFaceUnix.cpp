@@ -15,7 +15,6 @@
 #include "components/settings/Settings.h"
 using namespace Pinetime::Applications::Screens;
 
-static lv_img_dsc_t logo;
 
 WatchFaceUnix::WatchFaceUnix(Controllers::DateTime& dateTimeController,
                                    const Controllers::Battery& batteryController,
@@ -46,16 +45,9 @@ WatchFaceUnix::WatchFaceUnix(Controllers::DateTime& dateTimeController,
   lv_obj_align(label_unix, lv_scr_act(), LV_ALIGN_IN_BOTTOM_MID, 0, -20);
   lv_obj_set_style_local_text_color(label_unix, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x30c803));
 
-  logo.header.always_zero = 0; // Initialization
-  logo.header.w = 128; // Setting the Width (or) Horizontal length of the image (number of px)
-  logo.header.h = 128; // Setting the Height (or) vertical length of the image (number of px)
-  logo.data_size = logo.header.w * logo.header.h * LV_COLOR_SIZE / 8; // Allocation of memory for the image
-  logo.header.cf = LV_IMG_CF_TRUE_COLOR; // Sets the color scheme for the image
-  logo.data = aram_logo_map; // Maps the Image data to the Array
-  lv_obj_t *img_src = lv_img_create(lv_scr_act(), NULL); // Create the Image Object
-  lv_img_set_src(img_src, &logo); // Set the created file as image (aram_logo)
-
-  lv_obj_align(img_src, lv_scr_act(), LV_ALIGN_IN_TOP_MID, 0, 7); // <x_pos>, <y_pos> are the coordinates of the Cartesian plane
+  logo = lv_img_create(lv_scr_act(), nullptr); // Create the Image Object
+  lv_img_set_src(logo, "F:/images/logo.bin"); // Set the created file as image (aram_logo)
+  lv_obj_align(logo, lv_scr_act(), LV_ALIGN_IN_TOP_MID, 0, 7); // <x_pos>, <y_pos> are the coordinates of the Cartesian plane
 
   label_time = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_extrabold_compressed);
@@ -213,3 +205,16 @@ void WatchFaceUnix::Refresh() {
     lv_obj_realign(stepIcon);
   }
 }
+
+bool WatchFaceUnix::IsAvailable(Pinetime::Controllers::FS& filesystem) {
+  lfs_file_t file;
+
+  if (filesystem.FileOpen(&file, "/images/logo.bin", LFS_O_RDONLY) < 0) {
+    return false;
+  }
+
+  filesystem.FileClose(&file);
+
+  return true;
+}
+
