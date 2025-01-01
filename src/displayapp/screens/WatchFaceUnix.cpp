@@ -15,25 +15,25 @@
 #include "components/settings/Settings.h"
 using namespace Pinetime::Applications::Screens;
 
-static lv_img_dsc_t logo;
 
 WatchFaceUnix::WatchFaceUnix(Controllers::DateTime& dateTimeController,
-                                   const Controllers::Battery& batteryController,
+                             const Controllers::Battery& batteryController,
                              const Controllers::Ble& bleController,
-                                   Controllers::NotificationManager& notificationManager,
-                                   Controllers::Settings& settingsController,
-                                   Controllers::HeartRateController& heartRateController,
-                                   Controllers::MotionController& motionController)
-  :
-    currentDateTime {{}},
-    dateTimeController {dateTimeController},
-    batteryController {batteryController},
-    bleController {bleController},
-    notificationManager {notificationManager},
-    settingsController {settingsController},
-    heartRateController {heartRateController},
-    motionController {motionController},
-    statusIcons(batteryController, bleController) {
+                             Controllers::NotificationManager& notificationManager,
+                             Controllers::Settings& settingsController,
+                             Controllers::HeartRateController& heartRateController,
+                             Controllers::MotionController& motionController,
+                             Controllers::FS& filesystem)
+  : currentDateTime{{}},
+    dateTimeController{dateTimeController},
+    batteryController{batteryController},
+    bleController{bleController},
+    notificationManager{notificationManager},
+    settingsController{settingsController},
+    heartRateController{heartRateController},
+    motionController{motionController},
+    statusIcons(batteryController, bleController),
+    logo(filesystem, lv_color_hex(0x30c803)) {
 
   statusIcons.Create();
 
@@ -46,16 +46,9 @@ WatchFaceUnix::WatchFaceUnix(Controllers::DateTime& dateTimeController,
   lv_obj_align(label_unix, lv_scr_act(), LV_ALIGN_IN_BOTTOM_MID, 0, -20);
   lv_obj_set_style_local_text_color(label_unix, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x30c803));
 
-  logo.header.always_zero = 0; // Initialization
-  logo.header.w = 128; // Setting the Width (or) Horizontal length of the image (number of px)
-  logo.header.h = 128; // Setting the Height (or) vertical length of the image (number of px)
-  logo.data_size = logo.header.w * logo.header.h * LV_COLOR_SIZE / 8; // Allocation of memory for the image
-  logo.header.cf = LV_IMG_CF_TRUE_COLOR; // Sets the color scheme for the image
-  logo.data = aram_logo_map; // Maps the Image data to the Array
-  lv_obj_t *img_src = lv_img_create(lv_scr_act(), NULL); // Create the Image Object
-  lv_img_set_src(img_src, &logo); // Set the created file as image (aram_logo)
-
-  lv_obj_align(img_src, lv_scr_act(), LV_ALIGN_IN_TOP_MID, 0, 7); // <x_pos>, <y_pos> are the coordinates of the Cartesian plane
+  if (logo.TryCreate()) {
+    lv_obj_align(logo.GetObject(), lv_scr_act(), LV_ALIGN_IN_TOP_MID, 0, 7);
+  }
 
   label_time = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_extrabold_compressed);
@@ -106,11 +99,11 @@ WatchFaceUnix::~WatchFaceUnix() {
   lv_obj_clean(lv_scr_act());
 }
 
-int WatchFaceUnix::timePointToTimestamp(std::chrono::system_clock::time_point& tp ) {
+int WatchFaceUnix::timePointToTimestamp(std::chrono::system_clock::time_point& tp) {
   using namespace date;
-//  std::chrono::system_clock::time_point today = tp;
+  //  std::chrono::system_clock::time_point today = tp;
 
-  sys_days unix_epoch = day(1)/jan/1970;
+  sys_days unix_epoch = day(1) / jan / 1970;
   days days_since_epoch = floor<days>(tp) - unix_epoch;
 
   auto secs = tp - floor<days>(tp);
@@ -129,7 +122,7 @@ void WatchFaceUnix::Refresh() {
 
   currentDateTime = dateTimeController.CurrentDateTime();
 
- if (currentDateTime.IsUpdated()) {
+  if (currentDateTime.IsUpdated()) {
     auto newDateTime = currentDateTime.Get();
     auto dp = date::floor<date::days>(newDateTime);
     auto time = date::make_time(newDateTime - dp);
@@ -175,10 +168,20 @@ void WatchFaceUnix::Refresh() {
     if ((year != currentYear) || (month != currentMonth) || (dayOfWeek != currentDayOfWeek) || (day != currentDay)) {
       if (settingsController.GetClockType() == Controllers::Settings::ClockType::H24) {
         lv_label_set_text_fmt(
-          label_date, "%s %d %s %d", dateTimeController.DayOfWeekShortToString(), day, dateTimeController.MonthShortToString(), year);
+          label_date,
+          "%s %d %s %d",
+          dateTimeController.DayOfWeekShortToString(),
+          day,
+          dateTimeController.MonthShortToString(),
+          year);
       } else {
         lv_label_set_text_fmt(
-          label_date, "%s %s %d %d", dateTimeController.DayOfWeekShortToString(), dateTimeController.MonthShortToString(), day, year);
+          label_date,
+          "%s %s %d %d",
+          dateTimeController.DayOfWeekShortToString(),
+          dateTimeController.MonthShortToString(),
+          day,
+          year);
       }
       lv_obj_realign(label_date);
 
@@ -212,4 +215,16 @@ void WatchFaceUnix::Refresh() {
     lv_obj_realign(stepValue);
     lv_obj_realign(stepIcon);
   }
+}
+
+bool WatchFaceUnix::IsAvailable(Pinetime::Controllers::FS& filesystem) {
+  lfs_file_t file;
+
+  if (filesystem.FileOpen(&file, "/images/logo.bin", LFS_O_RDONLY) < 0) {
+    return false;
+  }
+
+  filesystem.FileClose(&file);
+
+  return true;
 }

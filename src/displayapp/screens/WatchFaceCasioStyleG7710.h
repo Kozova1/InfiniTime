@@ -11,6 +11,8 @@
 #include "components/ble/BleController.h"
 #include "utility/DirtyValue.h"
 #include "displayapp/apps/Apps.h"
+#include "displayapp/widgets/Counter.h"
+#include "displayapp/widgets/Logo.h"
 
 namespace Pinetime {
   namespace Controllers {
@@ -85,6 +87,8 @@ namespace Pinetime {
         lv_obj_t* notificationIcon;
         lv_obj_t* line_icons;
 
+
+        Widgets::Logo logo;
         BatteryIcon batteryIcon;
 
         Controllers::DateTime& dateTimeController;

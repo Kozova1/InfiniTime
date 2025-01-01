@@ -23,6 +23,7 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(Controllers::DateTime& dateTi
                                                    Controllers::MotionController& motionController,
                                                    Controllers::FS& filesystem)
   : currentDateTime {{}},
+    logo(filesystem, lv_color_darken(color_text, 128)),
     batteryIcon(false),
     dateTimeController {dateTimeController},
     batteryController {batteryController},
@@ -46,6 +47,10 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(Controllers::DateTime& dateTi
   if (filesystem.FileOpen(&f, "/fonts/7segments_115.bin", LFS_O_RDONLY) >= 0) {
     filesystem.FileClose(&f);
     font_segment115 = lv_font_load("F:/fonts/7segments_115.bin");
+  }
+
+  if (logo.TryCreate()) {
+    lv_obj_align(logo.GetObject(), lv_scr_act(), LV_ALIGN_CENTER, 0, -14);
   }
 
   label_battery_value = lv_label_create(lv_scr_act(), nullptr);

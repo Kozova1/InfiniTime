@@ -402,6 +402,7 @@ list(APPEND SOURCE_FILES
         displayapp/widgets/PageIndicator.cpp
         displayapp/widgets/DotIndicator.cpp
         displayapp/widgets/StatusIcons.cpp
+        displayapp/widgets/Logo.cpp
 
         ## Settings
         displayapp/screens/settings/QuickSettings.cpp
