@@ -12,7 +12,12 @@
 #include "components/heartrate/HeartRateController.h"
 #include "components/motion/MotionController.h"
 #include "components/settings/Settings.h"
+
+#include "displayapp/screens/WatchFaceUnixImage.h"
+
 using namespace Pinetime::Applications::Screens;
+
+static lv_img_dsc_t logo;
 
 WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(Controllers::DateTime& dateTimeController,
                                                    const Controllers::Battery& batteryController,
@@ -47,6 +52,18 @@ WatchFaceCasioStyleG7710::WatchFaceCasioStyleG7710(Controllers::DateTime& dateTi
     filesystem.FileClose(&f);
     font_segment115 = lv_font_load("F:/fonts/7segments_115.bin");
   }
+
+
+  logo.header.always_zero = 0; // Initialization
+  logo.header.w = 200; // Setting the Width (or) Horizontal length of the image (number of px)
+  logo.header.h = 200; // Setting the Height (or) vertical length of the image (number of px)
+  logo.data_size = logo.header.w * logo.header.h * LV_COLOR_SIZE / 8; // Allocation of memory for the image
+  logo.header.cf = LV_IMG_CF_TRUE_COLOR; // Sets the color scheme for the image
+  logo.data = aram_logo_map; // Maps the Image data to the Array
+  lv_obj_t *img_src = lv_img_create(lv_scr_act(), NULL); // Create the Image Object
+  lv_img_set_src(img_src, &logo); // Set the created file as image (aram_logo)
+
+  lv_obj_align(img_src, lv_scr_act(), LV_ALIGN_IN_TOP_MID, 0, 20); // <x_pos>, <y_pos> are the coordinates of the Cartesian plane
 
   label_battery_value = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_align(label_battery_value, lv_scr_act(), LV_ALIGN_IN_TOP_RIGHT, 0, 0);
