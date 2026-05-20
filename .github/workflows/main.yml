@@ -3,12 +3,12 @@ name: CI
 # Run this workflow whenever the build may be affected
 on:
   push:
-    branches: [ main ]
+    branches: [ aram-dev ]
     paths-ignore:
       - 'doc/**'
       - '**.md'
   pull_request:
-    branches: [ main ]
+    branches: [ aram-dev ]
     paths-ignore:
       - 'doc/**'
       - '**.md'
